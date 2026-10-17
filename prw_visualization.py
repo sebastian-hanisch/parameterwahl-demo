@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -10,6 +12,23 @@ import prw_constants as C
 from prw_evaluation import Analysis, de, lam_text, noise_label, sci
 
 LOG_FLOOR = 1e-17
+
+
+def _ref_line(fig, value, text, position, axis, log=True, **line_kwargs):
+    """Referenzlinie mit Beschriftung auf einer logarithmischen Achse: die Linie liegt auf dem Datenwert, die Beschriftung braucht log10 des Werts
+    (add_hline und add_vline setzen beide auf denselben Wert, die Beschriftung sitzt dann falsch und dehnt die Achse); log=False für lineare Achsen."""
+    if log and not value > 0.0:
+        return
+    pos = math.log10(value) if log else value
+    top, left = "top" in position, "left" in position
+    if axis == "y":
+        fig.add_hline(y=value, **line_kwargs)
+        if text:
+            fig.add_annotation(xref="paper", yref="y", x=0 if left else 1, y=pos, text=text, showarrow=False, xanchor="left" if left else "right", yanchor="bottom" if top else "top")
+    else:
+        fig.add_vline(x=value, **line_kwargs)
+        if text:
+            fig.add_annotation(xref="x", yref="paper", x=pos, y=1 if top else 0, text=text, showarrow=False, xanchor="right" if left else "left", yanchor="top" if top else "bottom")
 
 
 def _fixed(fig: go.Figure, height: int = 380, **layout) -> go.Figure:
@@ -95,7 +114,7 @@ def build_residual_chart(a: Analysis) -> go.Figure:
     i = a.picks["dp"]
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=a.lams, y=np.maximum(a.res, LOG_FLOOR), mode="lines", name="Residuum ‖A xλ − b‖", line=dict(color=C.COLOR_DP, width=3)))
-    fig.add_hline(y=a.target, line=dict(color="#888888", dash="dash"), annotation_text=f"Ziel τ·σ·√n (σ angenommen = {de(a.settings.sfactor, 2)}·σ)", annotation_position="top left")
+    _ref_line(fig, a.target, f"Ziel τ·σ·√n (σ angenommen = {de(a.settings.sfactor, 2)}·σ)", "top left", "y", line=dict(color="#888888", dash="dash"))
     fig.add_trace(go.Scatter(x=[a.lams[i]], y=[a.res[i]], mode="markers", name="gewähltes λ", marker=dict(size=13, color=C.COLOR_DP, line=dict(width=2, color="#ffffff"))))
     _vline(fig, a.lam_star, "λ*", C.COLOR_GREY, "top right", "dash")
     _lam_axis(fig)
@@ -121,8 +140,8 @@ def build_box_chart(res: dict, kind: str) -> go.Figure:
     fig = go.Figure()
     for key in ("dp", "gcv", "lcurve", "oracle"):
         fig.add_trace(go.Box(y=d["rules"][key]["errors"], name=C.RULE_SHORT[key], marker_color=C.RULE_COLORS[key], boxpoints="outliers"))
-    fig.add_hline(y=d["err_star"], line=dict(color="#888888", dash="dash"), annotation_text="erwartetes Optimum", annotation_position="top left")
-    fig.add_hline(y=C.FAIL_FACTOR * d["err_star"], line=dict(color=C.COLOR_NAIVE, dash="dot"), annotation_text="Doppeltes: gescheitert", annotation_position="top left")
+    _ref_line(fig, d["err_star"], "erwartetes Optimum", "top left", "y", line=dict(color="#888888", dash="dash"))
+    _ref_line(fig, C.FAIL_FACTOR * d["err_star"], "Doppeltes: gescheitert", "top left", "y", line=dict(color=C.COLOR_NAIVE, dash="dot"))
     fig.update_yaxes(title="Fehler relativ zur Signalnorm", type="log", tickvals=[0.05, 0.1, 0.2, 0.5, 1, 2, 5], ticktext=["5 %", "10 %", "20 %", "50 %", "100 %", "200 %", "500 %"])
     return _fixed(fig, 400, showlegend=False)
 
