@@ -1,5 +1,7 @@
 # Parameterwahl ohne Wahrheit: GCV, Diskrepanzprinzip, L-Kurve – Streamlit-Demo
 
+**[→ Demo live ausprobieren](https://sebastianhanisch-parameterwahl-demo.streamlit.app/)**
+
 Viertes Stück der Linie **Inverse Probleme und Regularisierung** in der „Konzepte“-Reihe im Portfolio von [Sebastian Hanisch](https://sebastianhanisch.net) (Operations Research und Machine Learning). Es baut auf [schlecht-gestellt-demo](https://github.com/sebastian-hanisch/schlecht-gestellt-demo), [tikhonov-demo](https://github.com/sebastian-hanisch/tikhonov-demo) und [tsvd-demo](https://github.com/sebastian-hanisch/tsvd-demo) auf und nutzt dieselbe Welt: ein Phantom aus zwei Hügeln und einem Kasten, gemessen mit einer Gauß-Unschärfe und weißem Rauschen. Die Wahrheit ist bekannt, weil das Phantom selbst die Wahrheit ist; sie dient hier nur als Maßstab, nie als Eingabe einer Regel.
 
 ## Kernfrage
